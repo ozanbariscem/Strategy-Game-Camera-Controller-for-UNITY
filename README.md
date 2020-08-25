@@ -12,6 +12,8 @@ Camera controller made for strategy games inspired by Cities: Skylines camera co
 
 ## Usage
 
-Rotation of the camera should be (90, 0, 0)
+Rotation of the camera should be (90, 0, 0).
+
 To rotate it on x axis use CameraRotateRigs x axis.
+
 To rotate it on y axis use CameraMoveRigs y axis.
