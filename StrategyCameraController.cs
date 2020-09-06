@@ -8,10 +8,10 @@ public class StrategyCameraController : MonoBehaviour
 
     [Header("Speed Settings")]
     public AnimationCurve cameraCloseCurve = DefaultCameraCloseCurve();
-    public float timeSpeed = 5;
-    public float moveSpeed = 1;
-    public float rotateSpeed = 1;
-    public float zoomSpeed = 2;
+    public float lerpSpeed = 5;
+    public float moveSpeed = 2;
+    public float rotateSpeed = 2;
+    public float zoomSpeed = 4;
     public float mouseZoomMultiplier = 5;
     [Range(0, 1)]
     public float borderMovementEffectRange = 0.01f;
@@ -60,6 +60,11 @@ public class StrategyCameraController : MonoBehaviour
 
     public void Start()
     {
+        moveSpeed *= 100;
+        rotateSpeed *= 100;
+        zoomSpeed *= 100;
+        mouseZoomMultiplier *= 100;
+
         cameraCloseCurve = DefaultCameraCloseCurve();
         cameraStartPosition = cameraMoveRig.localPosition;
 
@@ -78,6 +83,10 @@ public class StrategyCameraController : MonoBehaviour
         MouseInput();
         KeyboardInput();
         ClampPosition();
+    }
+
+    void FixedUpdate()
+    {
         Move();
         Rotate();
     }
@@ -85,7 +94,7 @@ public class StrategyCameraController : MonoBehaviour
     public void MouseInput()
     {
         if (cameraCanZoom && Input.mouseScrollDelta.y != 0)
-            ZoomInput(Input.mouseScrollDelta.y * zoomVector * mouseZoomMultiplier * CameraCloseMultiplier);
+            ZoomInput(Input.mouseScrollDelta.y * zoomVector * mouseZoomMultiplier * CameraCloseMultiplier * Time.deltaTime);
 
         if ((cameraCanRotateVertically || cameraCanRotateHorizontally) && Input.GetMouseButtonDown(2))
             rotStartPos = Input.mousePosition;
@@ -97,21 +106,21 @@ public class StrategyCameraController : MonoBehaviour
             rotStartPos = rotCurrentPos;
             
             if (cameraCanRotateVertically)
-                RotateInput(verticalAngel, Vector3.right, -direction.y/5f);
+                RotateInput(verticalAngel, Vector3.right, -direction.y * 20 * Time.deltaTime);
             if (cameraCanRotateHorizontally)
-                RotateInput(horizontalAngel, Vector3.up, -direction.x/5f);
+                RotateInput(horizontalAngel, Vector3.up, -direction.x * 20 * Time.deltaTime);
         }
 
         if (useBorderMovement && cameraCanMove)
         {
             if (Input.mousePosition.y >= Screen.height - borderMovementThickness)
-                MoveInput(cameraMoveRig.forward * moveSpeed * CameraCloseMultiplier);
+                MoveInput(cameraMoveRig.forward * moveSpeed * CameraCloseMultiplier * Time.deltaTime);
             if (Input.mousePosition.y <= borderMovementThickness)
-                MoveInput(-cameraMoveRig.forward * moveSpeed * CameraCloseMultiplier);
+                MoveInput(-cameraMoveRig.forward * moveSpeed * CameraCloseMultiplier * Time.deltaTime);
             if (Input.mousePosition.x >= Screen.width - borderMovementThickness)
-                MoveInput(cameraMoveRig.right * moveSpeed * CameraCloseMultiplier);
+                MoveInput(cameraMoveRig.right * moveSpeed * CameraCloseMultiplier * Time.deltaTime);
             if (Input.mousePosition.x <= borderMovementThickness)
-                MoveInput(-cameraMoveRig.right * moveSpeed * CameraCloseMultiplier);
+                MoveInput(-cameraMoveRig.right * moveSpeed * CameraCloseMultiplier * Time.deltaTime);
         }
     }
 
@@ -120,34 +129,34 @@ public class StrategyCameraController : MonoBehaviour
         if (cameraCanMove)
         {
             if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
-                MoveInput(cameraMoveRig.forward * moveSpeed * CameraCloseMultiplier);
+                MoveInput(cameraMoveRig.forward * moveSpeed * CameraCloseMultiplier * Time.deltaTime);
             if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
-                MoveInput(-cameraMoveRig.forward * moveSpeed * CameraCloseMultiplier);
+                MoveInput(-cameraMoveRig.forward * moveSpeed * CameraCloseMultiplier * Time.deltaTime);
             if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
-                MoveInput(cameraMoveRig.right * moveSpeed * CameraCloseMultiplier);
+                MoveInput(cameraMoveRig.right * moveSpeed * CameraCloseMultiplier * Time.deltaTime);
             if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
-                MoveInput(-cameraMoveRig.right * moveSpeed * CameraCloseMultiplier);
+                MoveInput(-cameraMoveRig.right * moveSpeed * CameraCloseMultiplier * Time.deltaTime);
         }
 
         if (cameraCanRotateVertically)
         {
             if (Input.GetKey(KeyCode.T))
-                RotateInput(verticalAngel, Vector3.right, rotateSpeed);
+                RotateInput(verticalAngel, Vector3.right, rotateSpeed * Time.deltaTime);
             if (Input.GetKey(KeyCode.G))
-                RotateInput(verticalAngel, Vector3.right, -rotateSpeed);
+                RotateInput(verticalAngel, Vector3.right, -rotateSpeed * Time.deltaTime);
         }
         if (cameraCanRotateHorizontally)
         {
             if (Input.GetKey(KeyCode.Q))
-                RotateInput(horizontalAngel, Vector3.up, rotateSpeed);
+                RotateInput(horizontalAngel, Vector3.up, rotateSpeed * Time.deltaTime);
             if (Input.GetKey(KeyCode.E))
-                RotateInput(horizontalAngel, Vector3.up, -rotateSpeed);
+                RotateInput(horizontalAngel, Vector3.up, -rotateSpeed * Time.deltaTime);
         }
 
         if (cameraCanZoom && Input.GetKey(KeyCode.R))
-            ZoomInput(zoomVector * CameraCloseMultiplier);
+            ZoomInput(zoomVector * CameraCloseMultiplier * Time.deltaTime);
         if (cameraCanZoom && Input.GetKey(KeyCode.F))
-            ZoomInput(-zoomVector * CameraCloseMultiplier);
+            ZoomInput(-zoomVector * CameraCloseMultiplier * Time.deltaTime);
     }
 
     public void ZoomInput(Vector3 value)
@@ -204,22 +213,27 @@ public class StrategyCameraController : MonoBehaviour
     public void Move()
     {
         if (cameraCanMove)
-            cameraMoveRig.localPosition = Vector3.Lerp(cameraMoveRig.localPosition, newPos, Time.deltaTime * timeSpeed);
+            LerpMove(cameraMoveRig, newPos, Time.fixedDeltaTime * lerpSpeed);
         if (cameraCanZoom)
-            cameraTransform.localPosition = Vector3.Lerp(cameraTransform.localPosition, newZoom, Time.deltaTime * timeSpeed);
+            LerpMove(cameraTransform, newZoom, Time.fixedDeltaTime * lerpSpeed);
+    }
+
+    private void LerpMove(Transform transform, Vector3 pos, float lerpValue)
+    {
+        transform.localPosition = Vector3.Lerp(transform.localPosition, pos, lerpValue);
     }
 
     public void Rotate()
     {
         if (cameraCanRotateVertically)
-        {
-            transform.localRotation = Quaternion.Slerp(transform.localRotation, Quaternion.Euler(verticalAngel, 0, 0), Time.deltaTime * timeSpeed);
-        }
-            
+            LerpRotate(transform, Quaternion.Euler(verticalAngel, 0, 0), Time.fixedDeltaTime * lerpSpeed);
         if (cameraCanRotateHorizontally)
-        {
-            cameraMoveRig.localRotation = Quaternion.Slerp(cameraMoveRig.localRotation, Quaternion.Euler(0, horizontalAngel, 0), Time.deltaTime * timeSpeed);
-        }
+            LerpRotate(cameraMoveRig, Quaternion.Euler(0, horizontalAngel, 0), Time.fixedDeltaTime * lerpSpeed);
+    }
+
+    private void LerpRotate(Transform transform, Quaternion quaternion, float lerpValue)
+    {
+        transform.localRotation = Quaternion.Slerp(transform.localRotation, quaternion, lerpValue);
     }
 
     private static AnimationCurve DefaultCameraCloseCurve()
