@@ -14,8 +14,8 @@ public class StrategyCameraController : MonoBehaviour
     public float zoomSpeed = 2;
     public float mouseZoomMultiplier = 5;
     [Range(0, 1)]
-    public float panBorderEffectRange = 0.01f;
-    float panBorderThickness;
+    public float borderMovementEffectRange = 0.01f;
+    float borderMovementThickness;
     Vector3 zoomVector;
 
     private float CameraCloseMultiplier{
@@ -63,7 +63,7 @@ public class StrategyCameraController : MonoBehaviour
         cameraCloseCurve = DefaultCameraCloseCurve();
         cameraStartPosition = cameraMoveRig.localPosition;
 
-        panBorderThickness = Screen.height * panBorderEffectRange;
+        borderMovementThickness = Screen.height * borderMovementEffectRange;
 
         zoomVector = new Vector3(0, -zoomSpeed, 0);
         newZoom = cameraTransform.localPosition;
@@ -104,13 +104,13 @@ public class StrategyCameraController : MonoBehaviour
 
         if (useBorderMovement && cameraCanMove)
         {
-            if (Input.mousePosition.y >= Screen.height - panBorderThickness)
+            if (Input.mousePosition.y >= Screen.height - borderMovementThickness)
                 MoveInput(cameraMoveRig.forward * moveSpeed * CameraCloseMultiplier);
-            if (Input.mousePosition.y <= panBorderThickness)
+            if (Input.mousePosition.y <= borderMovementThickness)
                 MoveInput(-cameraMoveRig.forward * moveSpeed * CameraCloseMultiplier);
-            if (Input.mousePosition.x >= Screen.width - panBorderThickness)
+            if (Input.mousePosition.x >= Screen.width - borderMovementThickness)
                 MoveInput(cameraMoveRig.right * moveSpeed * CameraCloseMultiplier);
-            if (Input.mousePosition.x <= panBorderThickness)
+            if (Input.mousePosition.x <= borderMovementThickness)
                 MoveInput(-cameraMoveRig.right * moveSpeed * CameraCloseMultiplier);
         }
     }
