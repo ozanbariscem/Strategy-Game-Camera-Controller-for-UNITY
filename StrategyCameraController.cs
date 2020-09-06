@@ -7,13 +7,14 @@ public class StrategyCameraController : MonoBehaviour
     Vector3 cameraStartPosition;
 
     [Header("Speed Settings")]
-    public AnimationCurve cameraCloseCurve;
-    public float timeSpeed;
-    public float moveSpeed;
-    public float rotateSpeed;
-    public float zoomSpeed;
-    public float mouseZoomMultiplier;
-    public float panBorderEffectRange;
+    public AnimationCurve cameraCloseCurve = DefaultCameraCloseCurve();
+    public float timeSpeed = 5;
+    public float moveSpeed = 1;
+    public float rotateSpeed = 1;
+    public float zoomSpeed = 2;
+    public float mouseZoomMultiplier = 5;
+    [Range(0, 1)]
+    public float panBorderEffectRange = 0.01f;
     float panBorderThickness;
     Vector3 zoomVector;
 
@@ -35,7 +36,7 @@ public class StrategyCameraController : MonoBehaviour
     Vector3 rotCurrentPos;
 
     [Header("Camera Limits")]
-    public Vector3 minPosition = new Vector3(-50, 0, -50);
+    public Vector3 minPosition = new Vector3(-50, 10, -50);
     public Vector3 maxPosition = new Vector3(50, 100, 50);
     [Range(0, 360)]
     public float minVerticalAngle = 280; 
@@ -50,15 +51,16 @@ public class StrategyCameraController : MonoBehaviour
 
 
     [Header("Functionality Settings")]
-    public bool useBorderMovement;
-    public bool cameraCanMove;
-    public bool cameraCanZoom;
-    public bool cameraCanRotateHorizontally;
-    public bool cameraCanRotateVertically;
-    public bool evaluateCameraCloseMultiplier;
+    public bool useBorderMovement = true;
+    public bool cameraCanMove = true;
+    public bool cameraCanZoom = true;
+    public bool cameraCanRotateHorizontally = true;
+    public bool cameraCanRotateVertically = true;
+    public bool evaluateCameraCloseMultiplier = true;
 
     public void Start()
     {
+        cameraCloseCurve = DefaultCameraCloseCurve();
         cameraStartPosition = cameraMoveRig.localPosition;
 
         panBorderThickness = Screen.height * panBorderEffectRange;
@@ -218,5 +220,14 @@ public class StrategyCameraController : MonoBehaviour
         {
             cameraMoveRig.localRotation = Quaternion.Slerp(cameraMoveRig.localRotation, Quaternion.Euler(0, horizontalAngel, 0), Time.deltaTime * timeSpeed);
         }
+    }
+
+    private static AnimationCurve DefaultCameraCloseCurve()
+    {
+        float rad = Mathf.Deg2Rad * 82;
+        AnimationCurve curve = new AnimationCurve();
+        curve.AddKey(new Keyframe(0, 0.32f));
+        curve.AddKey(new Keyframe(1, 1, rad, rad));
+        return curve;
     }
 }
